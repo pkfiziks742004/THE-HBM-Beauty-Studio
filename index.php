@@ -1,0 +1,998 @@
+<?php
+require_once __DIR__ . '/includes/config.php';
+
+$success_msg = '';
+$error_msg = '';
+
+// Handle form submission inline for single-page layout
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_appointment'])) {
+    // 1. Anti-Spam Honeypot Verification (Bots trap)
+    if (!empty($_POST['website_hp'])) {
+        // Silently treat as success for bot without inserting anything
+        $success_msg = "Thank you! Your appointment request has been received.";
+    } 
+    // 2. CSRF Token Verification
+    elseif (!isset($_POST['csrf_token']) || !verify_csrf_token($_POST['csrf_token'])) {
+        $error_msg = "Security session expired. Please refresh the page and try again.";
+    } else {
+        // 3. Modern, Secure Input Sanitization (PHP 8.2+ compliant)
+        $name    = sanitize_text($_POST['name'] ?? '');
+        $phone   = sanitize_text($_POST['phone'] ?? '');
+        $email   = filter_var(trim($_POST['email'] ?? ''), FILTER_SANITIZE_EMAIL);
+        $service = sanitize_text($_POST['service'] ?? '');
+        $date    = sanitize_text($_POST['date'] ?? '');
+        $time    = sanitize_text($_POST['time'] ?? '');
+        $message = sanitize_text($_POST['message'] ?? '');
+        
+        // 4. Input Validations
+        $today = date('Y-m-d');
+        
+        if (empty($name) || empty($phone) || empty($email) || empty($service) || empty($date) || empty($time)) {
+            $error_msg = "Please fill in all required fields.";
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $error_msg = "Please provide a valid email address.";
+        } elseif (!preg_match('/^[0-9+\s\-()]{7,20}$/', $phone)) {
+            $error_msg = "Please provide a valid phone number (digits and standard formatting only).";
+        } elseif (strtotime($date) < strtotime($today)) {
+            $error_msg = "Please choose an appointment date starting from today onwards.";
+        } else {
+            // 5. Database Insertion with Prepared Statements
+            if (isset($pdo) && $pdo !== null) {
+                try {
+                    $stmt = $pdo->prepare("INSERT INTO appointments (name, phone, email, service, appointment_date, appointment_time, message) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                    $stmt->execute([$name, $phone, $email, $service, $date, $time, $message]);
+                    $success_msg = "Thank you, " . h($name) . ". Your appointment request has been received. We will contact you shortly.";
+                } catch (PDOException $e) {
+                    // Safe error without exposing database internal credentials/structure
+                    $error_msg = "A temporary error occurred while saving your request. Please try again or reach us by phone.";
+                }
+            } else {
+                // Demo Mode / Cloud Graceful Fallback
+                $success_msg = "Thank you, " . h($name) . "! Your appointment request has been received successfully.";
+            }
+        }
+    }
+}
+
+require_once __DIR__ . '/includes/header.php';
+?>
+
+<!-- HERO SECTION -->
+<section id="home" class="hero">
+    <div class="container hero-container">
+        <div class="hero-content reveal">
+            <div class="hero-logo-area">
+                <img src="assets/images/crest-sm.webp" alt="THE HBM Crest" width="45" height="40" style="display: block; width: 45px; height: auto; margin: 0 auto 12px auto; opacity: 0.9;" fetchpriority="high" decoding="async">
+                <div class="hero-brand-name">THE HBM</div>
+                <div class="hero-brand-sub">
+                    <span class="line"></span> BEAUTY STUDIO <span class="line"></span>
+                </div>
+            </div>
+            
+            <h1 class="hero-title">Where Beauty<br>Meets Confidence.</h1>
+            
+            <div class="hero-separator">
+                <img src="assets/images/separator.webp" alt="Separator" width="150" height="50" style="width: 150px; height: auto; opacity: 0.8;" decoding="async">
+            </div>
+            
+            <p class="hero-desc">Refined beauty experiences, personalized<br>treatments and effortless elegance —<br>created especially for you.</p>
+            
+            <div class="hero-btns">
+                <a href="#contact" class="btn btn-gold btn-liquid">BOOK AN APPOINTMENT</a>
+                <a href="#services" class="btn btn-outline-dark btn-liquid">EXPLORE SERVICES</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ABOUT / EXPERIENCE SECTION -->
+<section id="about" class="experience-section">
+    <div class="container experience-container">
+        <!-- Image Side -->
+        <div class="exp-image-wrapper reveal">
+            <div class="exp-image-frame">
+                <img src="assets/images/about-image.webp" alt="THE HBM Experience" loading="lazy" decoding="async" width="512" height="410">
+            </div>
+        </div>
+        
+        <!-- Text Side -->
+        <div class="exp-content reveal">
+            <div class="exp-brand-area" style="flex-direction: column; gap: 8px;">
+                <img src="assets/images/crest-sm.webp" alt="THE HBM Crest" width="35" height="31" style="height: 35px; width: auto; opacity: 0.9;" loading="lazy" decoding="async">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <img src="assets/images/crest-sm.webp" alt="flourish" width="14" height="12" style="height: 12px; width: auto; opacity: 0.5;" loading="lazy" decoding="async">
+                    <span class="exp-subtitle">THE HBM EXPERIENCE</span>
+                    <img src="assets/images/crest-sm.webp" alt="flourish" width="14" height="12" style="height: 12px; width: auto; opacity: 0.5; transform: scaleX(-1);" loading="lazy" decoding="async">
+                </div>
+            </div>
+            
+            <h2 class="exp-title">Beauty is more than a look.<br><em>It's how you feel.</em></h2>
+            
+            <div class="exp-separator">
+                <img src="assets/images/separator.webp" alt="Separator" width="150" height="50" style="width: 150px; height: auto; opacity: 0.8;" loading="lazy" decoding="async">
+            </div>
+            
+            <p class="exp-text">
+                At THE HBM, beauty is approached with intention.<br>
+                From personalized consultations to carefully refined<br>
+                beauty treatments, every detail is designed to make you<br>
+                feel confident, comfortable and effortlessly beautiful.
+            </p>
+            
+            <div class="exp-signature">Beauty, thoughtfully created.</div>
+            
+            <div class="exp-stats">
+                <div class="stat-item">
+                    <div class="stat-icon"><i data-lucide="crown"></i></div>
+                    <div class="stat-num">10+</div>
+                    <div class="stat-label">YEARS OF<br>EXPERIENCE</div>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <div class="stat-icon"><i data-lucide="users"></i></div>
+                    <div class="stat-num">5K+</div>
+                    <div class="stat-label">HAPPY<br>CLIENTS</div>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <div class="stat-icon"><i data-lucide="flower-2"></i></div>
+                    <div class="stat-num">25+</div>
+                    <div class="stat-label">BEAUTY<br>SERVICES</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+  <!-- SERVICES SECTION -->
+  <section id="services" class="services-section">
+      <div class="services-watermark">HBM</div>
+      <div class="container services-container">
+          <div class="services-header text-center reveal">
+              <img src="assets/images/crest-sm.webp" alt="Crest" width="35" height="31" style="height: 35px; width: auto; margin: 0 auto 15px auto; opacity: 0.9;" loading="lazy" decoding="async">
+              <span class="exp-subtitle" style="display: block; margin-bottom: 10px;">OUR SERVICES</span>
+              <h2 class="services-main-title">Your Beauty,<br><em>Our Expertise.</em></h2>
+              <p class="services-subtext">Premium treatments. Professional care. Exceptional you.</p>
+          </div>
+          <div class="services-grid">
+              <!-- Hair Card -->
+              <div class="service-card reveal" style="transition-delay: 0.1s;">
+                  <div class="sc-image-area"><img src="assets/images/s1.webp" alt="Hair" loading="lazy" decoding="async" width="350" height="436"></div>
+                  <div class="sc-badge"><i data-lucide="scissors"></i></div>
+                  <div class="sc-content">
+                      <h3 class="sc-title">HAIR & STYLING</h3>
+                      <div class="sc-separator"><img src="assets/images/crest-sm.webp" alt="crest" style="height: 10px; width: auto; opacity: 0.5;" loading="lazy" decoding="async"></div>
+                      <ul class="sc-list"><li>Haircut & Styling</li><li>Hair Colour</li><li>Highlights</li><li>Hair Spa</li><li>Keratin Treatment</li><li>Hair Treatments</li></ul>
+                      <a href="#pricing" class="sc-explore">EXPLORE &rarr;</a>
+                  </div>
+              </div>
+              <!-- Skin Card -->
+              <div class="service-card reveal" style="transition-delay: 0.2s;">
+                  <div class="sc-image-area"><img src="assets/images/s2.webp" alt="Skin" loading="lazy" decoding="async" width="350" height="436"></div>
+                  <div class="sc-badge"><i data-lucide="flower-2"></i></div>
+                  <div class="sc-content">
+                      <h3 class="sc-title">SKIN & FACIAL</h3>
+                      <div class="sc-separator"><img src="assets/images/crest-sm.webp" alt="crest" style="height: 10px; width: auto; opacity: 0.5;" loading="lazy" decoding="async"></div>
+                      <ul class="sc-list"><li>Signature Facial</li><li>Glow Facial</li><li>Cleanup</li><li>Skin Polish</li><li>De-Tan</li><li>Skin Treatments</li></ul>
+                      <a href="#pricing" class="sc-explore">EXPLORE &rarr;</a>
+                  </div>
+              </div>
+              <!-- Makeup Card -->
+              <div class="service-card reveal" style="transition-delay: 0.3s;">
+                  <div class="sc-image-area"><img src="assets/images/s3.webp" alt="Makeup" loading="lazy" decoding="async" width="350" height="436"></div>
+                  <div class="sc-badge"><i data-lucide="brush"></i></div>
+                  <div class="sc-content">
+                      <h3 class="sc-title">MAKEUP</h3>
+                      <div class="sc-separator"><img src="assets/images/crest-sm.webp" alt="crest" style="height: 10px; width: auto; opacity: 0.5;" loading="lazy" decoding="async"></div>
+                      <ul class="sc-list"><li>Party Makeup</li><li>Engagement Makeup</li><li>Bridal Makeup</li><li>Reception Makeup</li></ul>
+                      <a href="#pricing" class="sc-explore">EXPLORE &rarr;</a>
+                  </div>
+              </div>
+              <!-- Nails Card -->
+              <div class="service-card reveal" style="transition-delay: 0.4s;">
+                  <div class="sc-image-area"><img src="assets/images/s4.webp" alt="Nails" loading="lazy" decoding="async" width="350" height="436"></div>
+                  <div class="sc-badge"><i data-lucide="palette"></i></div>
+                  <div class="sc-content">
+                      <h3 class="sc-title">NAILS & BEAUTY</h3>
+                      <div class="sc-separator"><img src="assets/images/crest-sm.webp" alt="crest" style="height: 10px; width: auto; opacity: 0.5;" loading="lazy" decoding="async"></div>
+                      <ul class="sc-list"><li>Manicure</li><li>Pedicure</li><li>Gel Nails</li><li>Nail Art</li></ul>
+                      <a href="#pricing" class="sc-explore">EXPLORE &rarr;</a>
+                  </div>
+              </div>
+              <!-- Bridal Card -->
+              <div class="service-card reveal" style="transition-delay: 0.5s;">
+                  <div class="sc-image-area"><img src="assets/images/s5.webp" alt="Bridal" loading="lazy" decoding="async" width="350" height="436"></div>
+                  <div class="sc-badge"><i data-lucide="crown"></i></div>
+                  <div class="sc-content">
+                      <h3 class="sc-title">BRIDAL EXPERIENCE</h3>
+                      <div class="sc-separator"><img src="assets/images/crest-sm.webp" alt="crest" style="height: 10px; width: auto; opacity: 0.5;" loading="lazy" decoding="async"></div>
+                      <ul class="sc-list"><li>Bridal Makeup</li><li>Bridal Hair Styling</li><li>Pre-Bridal</li><li>Complete Packages</li></ul>
+                      <a href="#pricing" class="sc-explore">EXPLORE &rarr;</a>
+                  </div>
+              </div>
+          </div>
+      </div>
+      
+      <div class="service-banner-container">
+          <div class="service-bottom-banner">
+              BEAUTY, TAILORED JUST FOR YOU
+              <img src="assets/images/separator.webp" alt="separator" width="120" height="40" class="banner-separator" loading="lazy" decoding="async">
+          </div>
+      </div>
+  </section>
+<!-- BEAUTY MENU SECTION (INTERACTIVE) -->
+<section id="pricing" class="section beauty-menu-section">
+    <div class="menu-top-wrapper" style="position: relative; overflow: hidden; padding-bottom: 2rem; padding-top: 1.5rem;">
+
+        <!-- Right side SVG wavy image panel -->
+        <div class="menu-image-panel">
+            <div class="menu-img-bg"></div>
+            <svg class="wavy-edge" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <!-- Cream mask -->
+                <path d="M -10,0 L 30,0 C 70,30 -10,65 30,100 L -10,100 Z" fill="#f9f4ec" />
+                <!-- Double gold border -->
+                <path d="M 30,0 C 70,30 -10,65 30,100" fill="none" stroke="#d3ad6b" stroke-width="2" vector-effect="non-scaling-stroke" />
+                <path d="M 32,0 C 72,30 -8,65 32,100" fill="none" stroke="#d3ad6b" stroke-width="1" vector-effect="non-scaling-stroke" />
+            </svg>
+        </div>
+        
+        <div class="container menu-container">
+            <!-- Left side content panel -->
+            <div class="menu-content-panel reveal">
+                
+                <div class="menu-header">
+                    <img src="assets/images/crest-sm.webp" alt="Crest" width="30" height="27" class="menu-header-icon" loading="lazy" decoding="async">
+                    <div class="menu-subtitle">+ THE HBM BEAUTY MENU +</div>
+                    <h2 class="menu-title">Beauty, Tailored<br><em>Just For You.</em></h2>
+                    <img src="assets/images/separator.webp" alt="Separator" width="130" height="40" class="menu-separator" loading="lazy" decoding="async">
+                    <p class="menu-desc">Premium services with transparent pricing.<br>Because you deserve the best.</p>
+                </div>
+                
+                <div class="menu-tabs">
+                <button class="menu-tab-btn active" data-target="pane-hair">HAIR</button>
+                <div class="menu-tab-divider"></div>
+                <button class="menu-tab-btn" data-target="pane-skin">SKIN</button>
+                <div class="menu-tab-divider"></div>
+                <button class="menu-tab-btn" data-target="pane-makeup">MAKEUP</button>
+                <div class="menu-tab-divider"></div>
+                <button class="menu-tab-btn" data-target="pane-nails">NAILS</button>
+                <div class="menu-tab-divider"></div>
+                <button class="menu-tab-btn" data-target="pane-bridal">BRIDAL</button>
+            </div>
+                
+              <div class="menu-card">
+                
+                <!-- HAIR PANE -->
+                <div class="menu-pane active" id="pane-hair">
+                    <div class="menu-card-inner">
+                        <div class="menu-col">
+                            <div class="menu-col-header">
+                                <div class="menu-col-icon-wrapper"><img src="assets/images/s1.webp" alt="Icon" width="40" height="40" loading="lazy" decoding="async"></div>
+                                <h3 class="menu-col-title">HAIR & STYLING</h3>
+                            </div>
+                            <div class="menu-col-sep"></div>
+                            <ul class="menu-list">
+                                <li><span class="m-name">Advanced Haircut</span><span class="m-dots"></span><span class="m-price">₹799+</span></li>
+                                <li><span class="m-name">Blow Dry</span><span class="m-dots"></span><span class="m-price">₹399+</span></li>
+                                <li><span class="m-name">Hair Spa</span><span class="m-dots"></span><span class="m-price">₹999+</span></li>
+                                <li><span class="m-name">Global Colour</span><span class="m-dots"></span><span class="m-price">₹1,999+</span></li>
+                                <li><span class="m-name">Highlights</span><span class="m-dots"></span><span class="m-price">₹2,499+</span></li>
+                                <li><span class="m-name">Keratin Treatment</span><span class="m-dots"></span><span class="m-price">₹2,999+</span></li>
+                                <li><span class="m-name">Hair Botox</span><span class="m-dots"></span><span class="m-price">₹3,499+</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SKIN PANE -->
+                <div class="menu-pane" id="pane-skin">
+                    <div class="menu-card-inner">
+                        <div class="menu-col">
+                            <div class="menu-col-header">
+                                <div class="menu-col-icon-wrapper"><img src="assets/images/s2.webp" alt="Icon" width="40" height="40" loading="lazy" decoding="async"></div>
+                                <h3 class="menu-col-title">SKIN & FACIAL</h3>
+                            </div>
+                            <div class="menu-col-sep"></div>
+                            <ul class="menu-list">
+                                <li><span class="m-name">Signature Glow Facial</span><span class="m-dots"></span><span class="m-price">₹1,499+</span></li>
+                                <li><span class="m-name">Hydra Facial</span><span class="m-dots"></span><span class="m-price">₹2,499+</span></li>
+                                <li><span class="m-name">O3+ Whitening</span><span class="m-dots"></span><span class="m-price">₹1,999+</span></li>
+                                <li><span class="m-name">De-Tan Pack</span><span class="m-dots"></span><span class="m-price">₹499+</span></li>
+                                <li><span class="m-name">Full Body Polish</span><span class="m-dots"></span><span class="m-price">₹2,999+</span></li>
+                                <li><span class="m-name">Acne Treatment</span><span class="m-dots"></span><span class="m-price">₹1,999+</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MAKEUP PANE -->
+                <div class="menu-pane" id="pane-makeup">
+                    <div class="menu-card-inner">
+                        <div class="menu-col">
+                            <div class="menu-col-header">
+                                <div class="menu-col-icon-wrapper"><img src="assets/images/s3.webp" alt="Icon" width="40" height="40" loading="lazy" decoding="async"></div>
+                                <h3 class="menu-col-title">MAKEUP SERVICES</h3>
+                            </div>
+                            <div class="menu-col-sep"></div>
+                            <ul class="menu-list">
+                                <li><span class="m-name">Light Base</span><span class="m-dots"></span><span class="m-price">₹1,499+</span></li>
+                                <li><span class="m-name">Party Makeup</span><span class="m-dots"></span><span class="m-price">₹1,999+</span></li>
+                                <li><span class="m-name">HD Party Makeup</span><span class="m-dots"></span><span class="m-price">₹3,999+</span></li>
+                                <li><span class="m-name">Airbrush Makeup</span><span class="m-dots"></span><span class="m-price">₹5,999+</span></li>
+                                <li><span class="m-name">Eye Makeup</span><span class="m-dots"></span><span class="m-price">₹999+</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NAILS PANE -->
+                <div class="menu-pane" id="pane-nails">
+                    <div class="menu-card-inner">
+                        <div class="menu-col">
+                            <div class="menu-col-header">
+                                <div class="menu-col-icon-wrapper"><img src="assets/images/s1.webp" alt="Icon" width="40" height="40" loading="lazy" decoding="async"></div>
+                                <h3 class="menu-col-title">NAIL SERVICES</h3>
+                            </div>
+                            <div class="menu-col-sep"></div>
+                            <ul class="menu-list">
+                                <li><span class="m-name">Gel Polish</span><span class="m-dots"></span><span class="m-price">₹499+</span></li>
+                                <li><span class="m-name">French Manicure</span><span class="m-dots"></span><span class="m-price">₹799+</span></li>
+                                <li><span class="m-name">Acrylic Extensions</span><span class="m-dots"></span><span class="m-price">₹1,499+</span></li>
+                                <li><span class="m-name">Gel Extensions</span><span class="m-dots"></span><span class="m-price">₹1,999+</span></li>
+                                <li><span class="m-name">Nail Art (Per Finger)</span><span class="m-dots"></span><span class="m-price">₹99+</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BRIDAL PANE -->
+                <div class="menu-pane" id="pane-bridal">
+                    <div class="menu-card-inner">
+                        <div class="menu-col">
+                            <div class="menu-col-header">
+                                <div class="menu-col-icon-wrapper"><img src="assets/images/s4.webp" alt="Icon" width="40" height="40" loading="lazy" decoding="async"></div>
+                                <h3 class="menu-col-title">BRIDAL PACKAGES</h3>
+                            </div>
+                            <div class="menu-col-sep"></div>
+                            <ul class="menu-list">
+                                <li><span class="m-name">Pre-Bridal Basic</span><span class="m-dots"></span><span class="m-price">₹4,999+</span></li>
+                                <li><span class="m-name">Pre-Bridal Premium</span><span class="m-dots"></span><span class="m-price">₹9,999+</span></li>
+                                <li><span class="m-name">Reception Makeup</span><span class="m-dots"></span><span class="m-price">₹9,999+</span></li>
+                                <li><span class="m-name">Bridal Makeup (HD)</span><span class="m-dots"></span><span class="m-price">₹14,999+</span></li>
+                                <li><span class="m-name">Bridal Airbrush</span><span class="m-dots"></span><span class="m-price">₹19,999+</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bottom Feature Bar -->
+    <div class="menu-features-container reveal">
+        <div class="container menu-features-bar">
+            
+            <div class="mf-item">
+                <div class="mf-icon"><i data-lucide="award"></i></div>
+                <div class="mf-text">
+                    <strong>Expert Professionals</strong>
+                    <span>Certified & experienced beauty experts.</span>
+                </div>
+            </div>
+            
+            <div class="mf-item">
+                <div class="mf-icon"><i data-lucide="leaf"></i></div>
+                <div class="mf-text">
+                    <strong>Premium Products</strong>
+                    <span>We use high-quality, trusted products.</span>
+                </div>
+            </div>
+            
+            <div class="mf-item">
+                <div class="mf-icon"><i data-lucide="shield-check"></i></div>
+                <div class="mf-text">
+                    <strong>Hygiene & Safety</strong>
+                    <span>Highest standards of cleanliness & hygiene.</span>
+                </div>
+            </div>
+            
+            <div class="mf-item">
+                <div class="mf-icon"><i data-lucide="gem"></i></div>
+                <div class="mf-text">
+                    <strong>Personalized Care</strong>
+                    <span>Tailored treatments just for you.</span>
+                </div>
+            </div>
+            
+            <div class="mf-booking">
+                <div class="mf-icon"><i data-lucide="calendar"></i></div>
+                <div class="mf-text">
+                    <strong>Book Your Appointment</strong>
+                    <span>Let our experts pamper you.</span>
+                </div>
+                <a href="#contact" class="btn-book-now">BOOK NOW &rarr;</a>
+            </div>
+            
+        </div>
+    </div>
+    
+</section>
+
+<!-- WHY CHOOSE US -->
+<section id="why-us" class="section why-us-section">
+    <div class="why-layout">
+        
+        <!-- Left side Image panel -->
+        <div class="why-image-panel">
+            <div class="why-img-bg"></div>
+        </div>
+        
+        <!-- SVG Mask and Border (covers the entire section) -->
+        <svg class="why-wavy-edge" viewBox="0 0 100 100" preserveAspectRatio="none" style="overflow: visible;">
+            <!-- Cream mask to shape the right side -->
+            <path d="M 120,-5 L 45,-5 L 45,0 C 40,0 38,4 38,10 C 38,20 42,25 42,30 C 42,40 35,50 35,60 C 35,70 40,75 40,85 C 40,95 38,100 38,105 L 120,105 Z" fill="#fcf9f5" />
+            <!-- Double gold border -->
+            <path d="M 45,0 C 40,0 38,4 38,10 C 38,20 42,25 42,30 C 42,40 35,50 35,60 C 35,70 40,75 40,85 C 40,95 38,100 38,100" fill="none" stroke="#d3ad6b" stroke-width="2.5" vector-effect="non-scaling-stroke" />
+            <path d="M 43.5,0 C 38.5,0 36.5,4 36.5,10 C 36.5,20 40.5,25 40.5,30 C 40.5,40 33.5,50 33.5,60 C 33.5,70 38.5,75 38.5,85 C 38.5,95 36.5,100 36.5,100" fill="none" stroke="#d3ad6b" stroke-width="1.2" vector-effect="non-scaling-stroke" />
+        </svg>
+        
+        <!-- Right side content panel -->
+        <div class="why-content-panel reveal">
+            <div class="why-header">
+                <img src="assets/images/crest-sm.webp" alt="Crest" width="30" height="27" class="why-header-icon" loading="lazy" decoding="async">
+                <div class="why-subtitle">WHY CHOOSE</div>
+                <h2 class="why-title">WHY CHOOSE <span style="color: #a96b5d;">THE HBM</span></h2>
+                <p class="why-desc">At THE HBM, every detail is designed around you.<br>Experience luxury, trust & transformation like never before.</p>
+            </div>
+            
+            <div class="why-grid">
+                <!-- 01 -->
+                <div class="why-item">
+                    <div class="why-icon-box"><i data-lucide="sparkles" stroke-width="1"></i></div>
+                    <div class="why-num">01</div>
+                    <h3>Personalized Beauty</h3>
+                    <div class="why-item-sep"></div>
+                    <p>We understand you and create looks that reflect your unique personality.</p>
+                </div>
+                <!-- 02 -->
+                <div class="why-item">
+                    <div class="why-icon-box"><i data-lucide="award" stroke-width="1"></i></div>
+                    <div class="why-num">02</div>
+                    <h3>Experienced Artists</h3>
+                    <div class="why-item-sep"></div>
+                    <p>Our professional artists bring years of expertise and passion to every service.</p>
+                </div>
+                <!-- 03 -->
+                <div class="why-item">
+                    <div class="why-icon-box"><i data-lucide="droplets" stroke-width="1"></i></div>
+                    <div class="why-num">03</div>
+                    <h3>Premium Products</h3>
+                    <div class="why-item-sep"></div>
+                    <p>We use only high-quality, trusted products for the best results and healthy care.</p>
+                </div>
+                <!-- 04 -->
+                <div class="why-item">
+                    <div class="why-icon-box"><i data-lucide="sun" stroke-width="1"></i></div>
+                    <div class="why-num">04</div>
+                    <h3>Modern Techniques</h3>
+                    <div class="why-item-sep"></div>
+                    <p>Advanced tools and innovative techniques to deliver stunning, long-lasting results.</p>
+                </div>
+                <!-- 05 -->
+                <div class="why-item">
+                    <div class="why-icon-box"><i data-lucide="shield-check" stroke-width="1"></i></div>
+                    <div class="why-num">05</div>
+                    <h3>Hygiene & Care</h3>
+                    <div class="why-item-sep"></div>
+                    <p>Your safety is our priority. We maintain the highest standards of hygiene.</p>
+                </div>
+                <!-- 06 -->
+                <div class="why-item">
+                    <div class="why-icon-box"><i data-lucide="search" stroke-width="1"></i></div>
+                    <div class="why-num">06</div>
+                    <h3>Attention to Detail</h3>
+                    <div class="why-item-sep"></div>
+                    <p>From consultation to the final touch, we focus on every little detail that matters.</p>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+</section>
+
+<!-- HBM Experience Stats Bar -->
+<section class="hbm-trust-section-wrapper reveal">
+    <?php include __DIR__ . '/includes/hbm-stats-banner.php'; ?>
+</section>
+
+<!-- GALLERY SECTION -->
+<section id="gallery" class="hbm-gallery-section">
+    <!-- Decorative background flowers -->
+    <svg class="hbm-gallery-decoration hbm-gallery-decoration--left" viewBox="0 0 200 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M-50,200 C50,150 150,250 100,100 C80,50 -20,20 -80,80" stroke="#d6bba0" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M-20,180 C20,130 80,180 50,220 C30,250 -30,220 -60,200" stroke="#d6bba0" stroke-width="1" stroke-dasharray="4 4" stroke-linecap="round"/>
+        <circle cx="50" cy="180" r="40" stroke="#d6bba0" stroke-width="1"/>
+        <path d="M10,140 Q50,140 80,160 Q60,190 20,200 Z" stroke="#d6bba0" stroke-width="1.5" fill="none"/>
+        <path d="M-10,220 Q30,250 70,230 Q60,190 0,190 Z" stroke="#d6bba0" stroke-width="1.5" fill="none"/>
+        <circle cx="35" cy="185" r="5" fill="#d6bba0"/>
+    </svg>
+    
+    <svg class="hbm-gallery-decoration hbm-gallery-decoration--right" viewBox="0 0 200 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M250,200 C150,150 50,250 100,100 C120,50 220,20 280,80" stroke="#d6bba0" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M220,180 C180,130 120,180 150,220 C170,250 230,220 260,200" stroke="#d6bba0" stroke-width="1" stroke-dasharray="4 4" stroke-linecap="round"/>
+        <circle cx="150" cy="180" r="40" stroke="#d6bba0" stroke-width="1"/>
+        <path d="M190,140 Q150,140 120,160 Q140,190 180,200 Z" stroke="#d6bba0" stroke-width="1.5" fill="none"/>
+        <path d="M210,220 Q170,250 130,230 Q140,190 200,190 Z" stroke="#d6bba0" stroke-width="1.5" fill="none"/>
+        <circle cx="165" cy="185" r="5" fill="#d6bba0"/>
+    </svg>
+
+    <div class="hbm-gallery-content reveal">
+        
+        <!-- Lotus Decoration -->
+        <div class="hbm-gallery-top-decoration">
+            <svg class="hbm-gallery-lotus" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 22C12 22 5 16 5 9C5 5 8 2 12 2C16 2 19 5 19 9C19 16 12 22 12 22Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                <path d="M12 22C12 22 9 18 9 13C9 8 10 5 12 5C14 5 15 8 15 13C15 18 12 22 12 22Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                <circle cx="12" cy="12" r="2" fill="currentColor"/>
+            </svg>
+        </div>
+        
+        <!-- Section Label -->
+        <div class="hbm-gallery-eyebrow">OUR WORK</div>
+        
+        <!-- Main Heading -->
+        <h2 class="hbm-gallery-heading">
+            A Glimpse Into<br>Our <em>Beauty</em> World.
+        </h2>
+        
+        <!-- Decorative Divider -->
+        <div class="hbm-gallery-divider">
+            <div class="hbm-gallery-divider-icon"></div>
+        </div>
+        
+        <!-- Category Navigation -->
+        <ul class="hbm-gallery-categories">
+            <li class="hbm-gallery-category filter-btn active" data-filter="all">ALL</li>
+            <li class="hbm-gallery-category filter-btn" data-filter="hair">HAIR</li>
+            <li class="hbm-gallery-category filter-btn" data-filter="makeup">MAKEUP</li>
+            <li class="hbm-gallery-category filter-btn" data-filter="bridal">BRIDAL</li>
+            <li class="hbm-gallery-category filter-btn" data-filter="skin">SKIN</li>
+            <li class="hbm-gallery-category filter-btn" data-filter="nails">NAILS</li>
+        </ul>
+        
+        <!-- Gallery Grid -->
+        <div class="hbm-gallery-grid">
+            <div class="hbm-gallery-item portfolio-item hair show">
+                <img src="assets/images/s1.webp" alt="Hair Styling" class="hbm-gallery-image" loading="lazy" decoding="async" width="400" height="500">
+            </div>
+            <div class="hbm-gallery-item portfolio-item makeup show">
+                <img src="assets/images/s2.webp" alt="Makeup" class="hbm-gallery-image" loading="lazy" decoding="async" width="400" height="500">
+            </div>
+            <div class="hbm-gallery-item portfolio-item bridal show">
+                <img src="assets/images/s3.webp" alt="Bridal" class="hbm-gallery-image" loading="lazy" decoding="async" width="400" height="500">
+            </div>
+            <div class="hbm-gallery-item portfolio-item skin show">
+                <img src="assets/images/s4.webp" alt="Skin Care" class="hbm-gallery-image" loading="lazy" decoding="async" width="400" height="500">
+            </div>
+            <div class="hbm-gallery-item portfolio-item nails show">
+                <img src="assets/images/s5.webp" alt="Nails" class="hbm-gallery-image" loading="lazy" decoding="async" width="400" height="500">
+            </div>
+            <div class="hbm-gallery-item portfolio-item bridal show">
+                <img src="assets/images/why-choose-us.webp" alt="Bridal Styling" class="hbm-gallery-image" loading="lazy" decoding="async" width="400" height="500">
+            </div>
+            <div class="hbm-gallery-item portfolio-item hair show">
+                <img src="assets/images/about-image.webp" alt="Hair Blowdry" class="hbm-gallery-image" loading="lazy" decoding="async" width="400" height="500">
+            </div>
+            <div class="hbm-gallery-item portfolio-item skin show">
+                <img src="assets/images/media_1788194239322.webp" alt="Facial" class="hbm-gallery-image" loading="lazy" decoding="async" width="400" height="500">
+            </div>
+            <div class="hbm-gallery-item portfolio-item makeup hbm-hidden-item">
+                <img src="assets/images/s1.webp" alt="Makeup" class="hbm-gallery-image" loading="lazy" decoding="async" width="400" height="500">
+            </div>
+            <div class="hbm-gallery-item portfolio-item hair hbm-hidden-item">
+                <img src="assets/images/s2.webp" alt="Hair Styling" class="hbm-gallery-image" loading="lazy" decoding="async" width="400" height="500">
+            </div>
+            <div class="hbm-gallery-item portfolio-item skin hbm-hidden-item">
+                <img src="assets/images/s3.webp" alt="Skin Care" class="hbm-gallery-image" loading="lazy" decoding="async" width="400" height="500">
+            </div>
+            <div class="hbm-gallery-item portfolio-item nails hbm-hidden-item">
+                <img src="assets/images/s4.webp" alt="Nails" class="hbm-gallery-image" loading="lazy" decoding="async" width="400" height="500">
+            </div>
+        </div>
+        
+        <!-- Action Button -->
+        <div class="hbm-gallery-button-wrapper">
+            <div class="hbm-gallery-button-line-left">
+                <div class="hbm-gallery-line-long"></div>
+                <svg class="hbm-gallery-button-lotus" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 22C12 22 5 16 5 9C5 5 8 2 12 2C16 2 19 5 19 9C19 16 12 22 12 22Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                    <path d="M12 22C12 22 9 18 9 13C9 8 10 5 12 5C14 5 15 8 15 13C15 18 12 22 12 22Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                </svg>
+                <div class="hbm-gallery-line-short"></div>
+            </div>
+            <a href="javascript:void(0);" class="hbm-gallery-button" id="load-more-btn">VIEW FULL GALLERY <i data-lucide="arrow-right"></i></a>
+            <div class="hbm-gallery-button-line-right"></div>
+        </div>
+        
+    </div>
+</section>
+
+<!-- LIGHTBOX ELEMENT -->
+<div class="lightbox" id="lightbox">
+    <div class="lightbox-controls">
+        <button class="lightbox-close" id="lightbox-close" aria-label="Close"><i data-lucide="x" style="width: 32px; height: 32px;"></i></button>
+        <button class="lightbox-prev" id="lightbox-prev" aria-label="Previous"><i data-lucide="chevron-left" style="width: 48px; height: 48px;"></i></button>
+        <button class="lightbox-next" id="lightbox-next" aria-label="Next"><i data-lucide="chevron-right" style="width: 48px; height: 48px;"></i></button>
+    </div>
+    <div class="lightbox-content">
+        <div class="lightbox-img-wrapper">
+            <img src="" alt="Gallery Image" class="lightbox-img" id="lightbox-img">
+        </div>
+    </div>
+</div>
+
+<!-- VIDEO LIGHTBOX ELEMENT -->
+<div class="lightbox" id="video-lightbox">
+    <div class="lightbox-controls">
+        <button class="lightbox-close" id="video-lightbox-close" aria-label="Close"><i data-lucide="x"></i></button>
+    </div>
+    <div class="lightbox-content" style="width: 85%; max-width: 1000px; padding: 0;">
+        <div class="video-lightbox-wrapper" style="width: 100%; padding: 6px; border: 1px solid rgba(229, 216, 205, 0.4); border-radius: 12px; background: rgba(0,0,0,0.2); backdrop-filter: blur(4px);">
+            <div style="position: relative; padding-bottom: 56.25%; height: 0; width: 100%; box-shadow: 0 25px 60px rgba(0,0,0,0.8); border-radius: 6px; overflow: hidden; border: 1px solid rgba(229, 216, 205, 0.6); background: #000;">
+                <iframe id="video-frame" src="" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- BEAUTY CONFIDENCE SECTION -->
+<section class="hbm-confidence-section" id="quote">
+    <!-- Right Image (Underneath) -->
+    <div class="hbm-confidence-image-wrapper">
+        <img src="assets/images/bridal-confidence.webp" alt="Premium Bridal Styling" class="hbm-confidence-image" loading="lazy" decoding="async" width="700" height="700">
+        <!-- Subtle floral decoration overlaying bottom right -->
+        <svg class="hbm-confidence-floral floral-right" viewBox="0 0 200 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M200 300C170 250 120 180 80 150C50 120 20 80 0 40" stroke="#d6bba0" stroke-width="0.5" fill="none"/>
+            <circle cx="80" cy="150" r="40" stroke="#d6bba0" stroke-width="0.5" fill="none"/>
+            <path d="M80 110C110 110 130 130 130 150C130 180 100 200 80 200" stroke="#d6bba0" stroke-width="0.5" fill="none"/>
+            <path d="M50 150C50 180 70 200 90 200C120 200 150 170 150 130" stroke="#d6bba0" stroke-width="0.5" fill="none"/>
+        </svg>
+    </div>
+    
+    <!-- The curved background edge -->
+    <!-- We use an absolute SVG overlay to create the perfect double-wave mask and double gold border -->
+    <svg class="hbm-confidence-svg-overlay" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <!-- Cream background that forms the elegant double-wave (bulges right, dips left, bulges right) -->
+        <path d="M 56 0 C 68 15, 50 30, 50 50 C 50 70, 68 85, 56 100 L 0 100 L 0 0 Z" fill="#F8F3EC" />
+        <!-- Primary thin gold line -->
+        <path class="hbm-curve-border-1" d="M 56 0 C 68 15, 50 30, 50 50 C 50 70, 68 85, 56 100" fill="none" stroke="rgba(190, 145, 80, 0.6)" stroke-width="0.2" vector-effect="non-scaling-stroke"/>
+        <!-- Secondary subtle offset gold line -->
+        <path class="hbm-curve-border-2" d="M 54 0 C 66 15, 48 30, 48 50 C 48 70, 66 85, 54 100" fill="none" stroke="rgba(190, 145, 80, 0.3)" stroke-width="0.1" vector-effect="non-scaling-stroke"/>
+    </svg>
+
+    <div class="hbm-confidence-badge">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="34" height="34">
+            <path d="M12 22C12 22 5 16 5 9C5 5 8 2 12 2C16 2 19 5 19 9C19 16 12 22 12 22Z" stroke="currentColor" stroke-width="0.75" stroke-linejoin="round"/>
+            <path d="M12 22C12 22 9 18 9 13C9 8 10 5 12 5C14 5 15 8 15 13C15 18 12 22 12 22Z" stroke="currentColor" stroke-width="0.75" stroke-linejoin="round"/>
+            <path d="M12 5V22" stroke="currentColor" stroke-width="0.75"/>
+        </svg>
+    </div>
+
+    <!-- Left Content (Above) -->
+    <div class="hbm-confidence-content">
+        
+        <!-- Floral decoration entering from left bottom -->
+        <svg class="hbm-confidence-floral floral-left" viewBox="0 0 200 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0 300C30 250 80 180 120 150C150 120 180 80 200 40" stroke="#d6bba0" stroke-width="0.5" fill="none"/>
+            <circle cx="120" cy="150" r="40" stroke="#d6bba0" stroke-width="0.5" fill="none"/>
+            <path d="M120 110C90 110 70 130 70 150C70 180 100 200 120 200" stroke="#d6bba0" stroke-width="0.5" fill="none"/>
+            <path d="M160 150C160 120 140 100 120 100C90 100 60 130 60 170" stroke="#d6bba0" stroke-width="0.5" fill="none"/>
+        </svg>
+
+        <div class="hbm-confidence-inner">
+            <!-- Top Decoration -->
+            <div class="hbm-confidence-top-dec">
+                <div class="hbm-conf-line"></div>
+                <svg class="hbm-conf-lotus" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 22C12 22 5 16 5 9C5 5 8 2 12 2C16 2 19 5 19 9C19 16 12 22 12 22Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                    <path d="M12 22C12 22 9 18 9 13C9 8 10 5 12 5C14 5 15 8 15 13C15 18 12 22 12 22Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                    <circle cx="12" cy="12" r="2" fill="currentColor"/>
+                </svg>
+                <div class="hbm-conf-line"></div>
+            </div>
+            
+            <!-- Label -->
+            <div class="hbm-confidence-eyebrow">BEAUTY IS PERSONAL</div>
+            
+            <!-- Main Heading -->
+            <h2 class="hbm-confidence-heading">
+                Feel <span class="hbm-confidence-accent">beautiful.</span><br>
+                Feel confident.<br>
+                Feel <span class="hbm-confidence-accent">YOU.</span>
+            </h2>
+            
+            <!-- Small decorative divider -->
+            <div class="hbm-confidence-divider">
+                <div class="hbm-conf-div-line"></div>
+                <div class="hbm-conf-div-diamond"></div>
+                <div class="hbm-conf-div-line"></div>
+            </div>
+            
+            <!-- Description -->
+            <p class="hbm-confidence-description">
+                Every detail, crafted with care to bring out<br>the most confident version of you.
+            </p>
+            
+            <!-- Action Buttons -->
+            <div class="hbm-confidence-actions">
+                <a href="#gallery" class="hbm-confidence-primary">EXPLORE OUR WORK <i data-lucide="arrow-right"></i></a>
+                <a href="javascript:void(0);" class="hbm-confidence-video" id="hbm-video-btn" data-video="https://www.youtube.com/embed/9xwazD5SyVg?autoplay=1">
+                    <span class="hbm-video-icon">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <polygon points="10,8 16,12 10,16" fill="currentColor"/>
+                        </svg>
+                    </span>
+                    <span class="text">WATCH VIDEO</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- TESTIMONIALS SLIDER -->
+<section id="testimonials" class="hbm-testimonials-section">
+    <!-- Corner Decorations -->
+    <svg class="hbm-test-bg-decor decor-top-left" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="0" cy="0" r="150" stroke="rgba(190, 145, 80, 0.2)" stroke-width="0.5"/>
+        <circle cx="0" cy="0" r="180" stroke="rgba(190, 145, 80, 0.15)" stroke-width="0.5"/>
+        <path d="M 60 100 L 60 200" stroke="rgba(190, 145, 80, 0.3)" stroke-width="0.5"/>
+        <circle cx="60" cy="100" r="2" fill="#c8a165"/>
+    </svg>
+    <svg class="hbm-test-bg-decor decor-bottom-right" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="200" cy="200" r="120" stroke="rgba(190, 145, 80, 0.2)" stroke-width="0.5"/>
+        <circle cx="200" cy="200" r="160" stroke="rgba(190, 145, 80, 0.15)" stroke-width="0.5"/>
+        <path d="M 140 0 L 140 80" stroke="rgba(190, 145, 80, 0.3)" stroke-width="0.5"/>
+        <circle cx="140" cy="80" r="2" fill="#c8a165"/>
+    </svg>
+
+    <div class="container reveal">
+        <!-- Header Area -->
+        <div class="hbm-test-header">
+            <div class="hbm-confidence-top-dec">
+                <div class="hbm-conf-line"></div>
+                <svg class="hbm-conf-lotus" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 22C12 22 5 16 5 9C5 5 8 2 12 2C16 2 19 5 19 9C19 16 12 22 12 22Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                    <path d="M12 22C12 22 9 18 9 13C9 8 10 5 12 5C14 5 15 8 15 13C15 18 12 22 12 22Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                    <circle cx="12" cy="12" r="2" fill="currentColor"/>
+                </svg>
+                <div class="hbm-conf-line"></div>
+            </div>
+            
+            <div class="hbm-confidence-eyebrow">TESTIMONIALS</div>
+            
+            <h2 class="hbm-confidence-heading">Words From Our Clients</h2>
+            
+            <div class="hbm-confidence-divider" style="margin-bottom: 0;">
+                <div class="hbm-conf-div-line"></div>
+                <div class="hbm-conf-div-diamond"></div>
+                <div class="hbm-conf-div-line"></div>
+            </div>
+        </div>
+        
+        <!-- Slider Area -->
+        <div class="hbm-test-slider-wrapper">
+            <div class="hbm-test-track" id="testimonial-track">
+                
+                <div class="hbm-test-slide active">
+                    <div class="hbm-test-quote-wrap">
+                        <span class="hbm-quote-mark left">“</span>
+                        <p class="hbm-test-quote">THE HBM made my bridal experience absolutely unforgettable. Every detail was handled beautifully.</p>
+                        <span class="hbm-quote-mark right">”</span>
+                    </div>
+                    <div class="hbm-test-author-divider"></div>
+                    <p class="hbm-test-author">SIMRAN</p>
+                </div>
+                
+                <div class="hbm-test-slide">
+                    <div class="hbm-test-quote-wrap">
+                        <span class="hbm-quote-mark left">“</span>
+                        <p class="hbm-test-quote">I loved the ambience and attention to detail. My makeup looked exactly how I imagined.</p>
+                        <span class="hbm-quote-mark right">”</span>
+                    </div>
+                    <div class="hbm-test-author-divider"></div>
+                    <p class="hbm-test-author">PRIYA</p>
+                </div>
+                
+                <div class="hbm-test-slide">
+                    <div class="hbm-test-quote-wrap">
+                        <span class="hbm-quote-mark left">“</span>
+                        <p class="hbm-test-quote">Professional, warm and incredibly talented. I finally found my go-to beauty studio.</p>
+                        <span class="hbm-quote-mark right">”</span>
+                    </div>
+                    <div class="hbm-test-author-divider"></div>
+                    <p class="hbm-test-author">NEHA</p>
+                </div>
+                
+            </div>
+            
+            <!-- Controls -->
+            <div class="hbm-test-controls">
+                <button class="hbm-test-btn" id="test-prev" aria-label="Previous Testimonial"><i data-lucide="arrow-left"></i></button>
+                <div class="hbm-test-dots" id="test-dots"></div>
+                <button class="hbm-test-btn" id="test-next" aria-label="Next Testimonial"><i data-lucide="arrow-right"></i></button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CONTACT & APPOINTMENT CTA -->
+<section id="contact" class="hbm-contact-section">
+    <!-- Background Floral Decorations -->
+    <div class="hbm-contact-floral left"></div>
+    <div class="hbm-contact-floral right"></div>
+
+    <div class="hbm-contact-container reveal">
+        
+        <!-- LEFT SIDE: Booking Form -->
+        <div class="hbm-contact-left">
+            <div class="hbm-contact-header">
+                <span class="hbm-contact-eyebrow">BOOKING</span>
+                
+                <h2 class="hbm-contact-heading">Ready For Your<br><span class="hbm-contact-accent">Beauty Moment?</span></h2>
+                
+                <div class="hbm-confidence-divider" style="margin: 1.5rem 0; justify-content: flex-start;">
+                    <div class="hbm-conf-div-line" style="width: 40px;"></div>
+                    <div class="hbm-conf-div-diamond"></div>
+                    <div class="hbm-conf-div-line" style="width: 40px;"></div>
+                </div>
+                
+                <p class="hbm-contact-subtext">Let's create a look that feels completely you.</p>
+            </div>
+            
+            <div class="hbm-contact-form-card">
+                <?php if (!empty($success_msg)): ?>
+                    <div class="hbm-alert hbm-alert-success" id="form-message">
+                        <?php echo h($success_msg); ?>
+                    </div>
+                    <script>window.location.hash = '#form-message';</script>
+                <?php endif; ?>
+                
+                <?php if (!empty($error_msg)): ?>
+                    <div class="hbm-alert hbm-alert-error" id="form-message">
+                        <?php echo h($error_msg); ?>
+                    </div>
+                    <script>window.location.hash = '#form-message';</script>
+                <?php endif; ?>
+                
+                <form action="index.php#contact" method="POST" class="hbm-form">
+                    <input type="hidden" name="csrf_token" value="<?php echo h($csrf_token); ?>">
+                    <input type="hidden" name="submit_appointment" value="1">
+                    <!-- Anti-Spam Honeypot Field (Invisible to human users) -->
+                    <div style="position: absolute; left: -9999px; top: -9999px; opacity: 0; pointer-events: none;" aria-hidden="true">
+                        <label for="website_hp">Leave this field blank</label>
+                        <input type="text" id="website_hp" name="website_hp" tabindex="-1" autocomplete="off">
+                    </div>
+                    
+                    <div class="hbm-form-row">
+                        <div class="hbm-form-group">
+                            <label class="hbm-form-label" for="name">Full Name</label>
+                            <input type="text" id="name" name="name" class="hbm-form-control" placeholder="Enter your full name" required>
+                        </div>
+                        <div class="hbm-form-group">
+                            <label class="hbm-form-label" for="phone">Phone Number</label>
+                            <input type="tel" id="phone" name="phone" class="hbm-form-control" placeholder="Enter your phone number" required>
+                        </div>
+                    </div>
+                    
+                    <div class="hbm-form-row">
+                        <div class="hbm-form-group">
+                            <label class="hbm-form-label" for="email">Email</label>
+                            <input type="email" id="email" name="email" class="hbm-form-control" placeholder="Enter your email" required>
+                        </div>
+                        <div class="hbm-form-group">
+                            <label class="hbm-form-label" for="service">Select Service</label>
+                            <select id="service" name="service" class="hbm-form-control" required>
+                                <option value="">Select...</option>
+                                <option value="Hair Styling & Cut">Hair Styling & Cut</option>
+                                <option value="Skin Care & Facial">Skin Care & Facial</option>
+                                <option value="Makeup">Makeup</option>
+                                <option value="Bridal">Bridal</option>
+                                <option value="Nails">Nails</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="hbm-form-row">
+                        <div class="hbm-form-group">
+                            <label class="hbm-form-label" for="date">Preferred Date</label>
+                            <input type="date" id="date" name="date" class="hbm-form-control" min="<?php echo date('Y-m-d'); ?>" required>
+                        </div>
+                        <div class="hbm-form-group">
+                            <label class="hbm-form-label" for="time">Preferred Time</label>
+                            <input type="time" id="time" name="time" class="hbm-form-control" required>
+                        </div>
+                    </div>
+                    
+                    <div class="hbm-form-group">
+                        <label class="hbm-form-label" for="message">Message</label>
+                        <textarea id="message" name="message" class="hbm-form-control" placeholder="Write your message..."></textarea>
+                    </div>
+                    
+                    <button type="submit" class="hbm-btn-submit">Request Appointment</button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- RIGHT SIDE: Location Info -->
+        <div class="hbm-contact-right">
+            
+            <div class="hbm-contact-section-block">
+                <span class="hbm-contact-eyebrow">LOCATION</span>
+                <div class="hbm-confidence-divider" style="margin: 0.5rem 0 1.5rem 0; justify-content: flex-start;">
+                    <div class="hbm-conf-div-line" style="width: 20px;"></div>
+                    <div class="hbm-conf-div-diamond"></div>
+                    <div class="hbm-conf-div-line" style="width: 20px;"></div>
+                </div>
+                <h2 class="hbm-contact-heading" style="font-size: clamp(2rem, 3vw, 2.5rem);">Visit THE HBM</h2>
+                
+                <ul class="hbm-contact-info-list">
+                    <li>
+                        <div class="icon-circle"><i data-lucide="map-pin"></i></div>
+                        <span>4H87+VW Jewar, Uttar Pradesh</span>
+                    </li>
+                    <li>
+                        <div class="icon-circle"><i data-lucide="phone"></i></div>
+                        <span>+91 XXXXX XXXXX</span>
+                    </li>
+                    <li>
+                        <div class="icon-circle"><i data-lucide="mail"></i></div>
+                        <span>hello@thehbm.com</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="hbm-contact-divider-long">
+                <div class="line"></div>
+                <div class="dot"></div>
+                <div class="line"></div>
+            </div>
+            
+            <div class="hbm-contact-section-block">
+                <span class="hbm-contact-eyebrow">OPENING HOURS</span>
+                <div class="hbm-confidence-divider" style="margin: 0.5rem 0 1.5rem 0; justify-content: flex-start;">
+                    <div class="hbm-conf-div-line" style="width: 20px;"></div>
+                    <div class="hbm-conf-div-diamond"></div>
+                    <div class="hbm-conf-div-line" style="width: 20px;"></div>
+                </div>
+                
+                <ul class="hbm-contact-hours-list">
+                    <li><span>Monday – Saturday</span> <span>10:00 AM – 8:00 PM</span></li>
+                    <li><span>Sunday</span> <span>11:00 AM – 6:00 PM</span></li>
+                </ul>
+            </div>
+            
+            <div class="hbm-contact-actions">
+                <div class="hbm-action-row-split">
+                    <a href="tel:+910000000000" class="hbm-btn hbm-btn-primary"><i data-lucide="phone"></i> CALL NOW</a>
+                    <a href="https://wa.me/910000000000" target="_blank" class="hbm-btn hbm-btn-outline"><i data-lucide="message-circle"></i> WHATSAPP</a>
+                </div>
+                <a href="https://maps.google.com/maps?q=4H87%2BVW+Jewar,+Uttar+Pradesh" target="_blank" class="hbm-btn hbm-btn-outline hbm-btn-full"><i data-lucide="map-pin"></i> GET DIRECTIONS</a>
+            </div>
+        </div>
+        
+    </div>
+</section>
+
+<!-- LOCATION MAP SECTION -->
+<section class="hbm-map-section bg-nude">
+    <div class="hbm-map-container reveal">
+        <div class="hbm-map-frame">
+            <iframe src="https://maps.google.com/maps?q=4H87%2BVW+Jewar,+Uttar+Pradesh&t=&z=14&ie=UTF8&iwloc=&output=embed" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+    </div>
+</section>
+
+<?php require_once 'includes/footer.php'; ?>
