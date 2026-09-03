@@ -1259,11 +1259,11 @@ img {
     pointer-events: none;
 }
 
-/* Right Content Panel with Safe Margin away from Curve */
+/* Right Content Panel */
 .why-content-panel {
-    width: 58%;
-    margin-left: 42%;
-    padding: 8rem 3rem 6rem 2.5rem;
+    width: 62%;
+    margin-left: 38%;
+    padding: 8rem 2rem 6rem 2rem;
     position: relative;
     z-index: 3;
     display: flex;
@@ -1274,7 +1274,7 @@ img {
 
 .why-header {
     text-align: center;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
 }
 
 .why-header-icon {
@@ -1311,69 +1311,40 @@ img {
     line-height: 1.4;
 }
 
-/* Grid with Cloud-Like Organic Cards */
+/* Grid */
 .why-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 2rem 1.4rem;
-    max-width: 880px;
+    gap: 2.5rem 1.5rem;
+    max-width: 900px;
     margin: 0 auto;
 }
 
 .why-item {
     text-align: center;
-    padding: 1.5rem 1.1rem;
-    /* Soft Organic Cloud Shape */
-    border-radius: 26px 36px 26px 36px / 36px 26px 36px 26px;
-    background: rgba(255, 255, 255, 0.45);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.7);
-    box-shadow: 0 8px 24px rgba(169, 107, 93, 0.04), 0 0 15px rgba(255, 255, 255, 0.6) inset;
-    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    cursor: default;
-    position: relative;
-}
-
-.why-item:hover {
-    transform: translateY(-6px) scale(1.02);
-    border-radius: 34px 26px 34px 26px / 26px 34px 26px 34px;
-    background: rgba(255, 255, 255, 0.92);
-    border-color: rgba(211, 173, 107, 0.4);
-    box-shadow: 0 16px 36px -6px rgba(169, 107, 93, 0.14), 0 0 25px rgba(255, 255, 255, 0.95) inset;
+    padding: 0 0.5rem;
 }
 
 .why-icon-box {
-    width: 52px;
-    height: 52px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     border: 1px solid rgba(169, 107, 93, 0.3);
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 0.8rem;
-    background: rgba(255, 255, 255, 0.8);
-    position: relative;
-    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-    box-shadow: 0 4px 12px rgba(169, 107, 93, 0.06);
+    margin: 0 auto 0.75rem;
+    background: transparent;
+    transition: transform 0.3s ease;
 }
 
 .why-icon-box i {
     width: 22px;
     height: 22px;
     color: #a96b5d;
-    transition: all 0.35s ease;
 }
 
 .why-item:hover .why-icon-box {
-    transform: scale(1.12) rotate(6deg);
-    border-color: #d3ad6b;
-    background: linear-gradient(135deg, #fff7ee 0%, #f6e8d8 100%);
-    box-shadow: 0 8px 24px rgba(211, 173, 107, 0.35);
-}
-
-.why-item:hover .why-icon-box i {
-    color: #8c4c3e;
     transform: scale(1.08);
 }
 
@@ -1382,54 +1353,31 @@ img {
     font-size: 1.05rem;
     color: #a96b5d;
     margin-bottom: 0.25rem;
-    letter-spacing: 1px;
-    transition: transform 0.3s ease, color 0.3s ease;
-}
-
-.why-item:hover .why-num {
-    color: #d3ad6b;
-    transform: scale(1.05);
 }
 
 .why-item h3 {
     font-family: var(--font-serif);
-    font-size: 1.15rem;
-    font-weight: 500;
+    font-size: 1.1rem;
+    font-weight: 400;
     color: #3b2c28;
     margin-bottom: 0.4rem;
-    transition: color 0.3s ease;
-}
-
-.why-item:hover h3 {
-    color: #a96b5d;
 }
 
 .why-item-sep {
     width: 25px;
-    height: 1.5px;
-    background: linear-gradient(90deg, #d3ad6b, #e8c688, #d3ad6b);
-    margin: 0 auto 0.6rem;
+    height: 1px;
+    background-color: #d3ad6b;
+    margin: 0 auto 0.5rem;
     opacity: 0.7;
-    border-radius: 2px;
-    transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
-}
-
-.why-item:hover .why-item-sep {
-    width: 55px;
-    opacity: 1;
 }
 
 .why-item p {
     font-family: var(--font-sans);
-    font-size: 0.78rem;
-    color: #666;
-    line-height: 1.55;
-    transition: color 0.3s ease;
+    font-size: 0.75rem;
+    color: #777;
+    line-height: 1.5;
 }
 
-.why-item:hover p {
-    color: #3b2c28;
-}
 
 /* Trust Section Wrapper for Full-Width */
 .hbm-trust-section-wrapper {
