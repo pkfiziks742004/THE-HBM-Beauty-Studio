@@ -1259,11 +1259,11 @@ img {
     pointer-events: none;
 }
 
-/* Right Content Panel */
+/* Right Content Panel with Safe Margin away from Curve */
 .why-content-panel {
-    width: 62%;
-    margin-left: 38%;
-    padding: 8rem 2rem 6rem 2rem; /* Increased vertical padding to create tall aspect ratio */
+    width: 58%;
+    margin-left: 42%;
+    padding: 8rem 3rem 6rem 2.5rem;
     position: relative;
     z-index: 3;
     display: flex;
@@ -1274,7 +1274,7 @@ img {
 
 .why-header {
     text-align: center;
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
 }
 
 .why-header-icon {
@@ -1311,48 +1311,56 @@ img {
     line-height: 1.4;
 }
 
-/* Grid with Modern Smooth Animations */
+/* Grid with Cloud-Like Organic Cards */
 .why-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 2.5rem 1.5rem;
-    max-width: 900px;
+    gap: 2rem 1.4rem;
+    max-width: 880px;
     margin: 0 auto;
 }
 
 .why-item {
     text-align: center;
-    padding: 1.2rem 0.8rem;
-    border-radius: 12px;
-    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease, background-color 0.35s ease;
+    padding: 1.5rem 1.1rem;
+    /* Soft Organic Cloud Shape */
+    border-radius: 26px 36px 26px 36px / 36px 26px 36px 26px;
+    background: rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    box-shadow: 0 8px 24px rgba(169, 107, 93, 0.04), 0 0 15px rgba(255, 255, 255, 0.6) inset;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     cursor: default;
     position: relative;
 }
 
 .why-item:hover {
-    transform: translateY(-8px);
-    background-color: rgba(255, 255, 255, 0.85);
-    box-shadow: 0 12px 30px rgba(169, 107, 93, 0.08);
+    transform: translateY(-6px) scale(1.02);
+    border-radius: 34px 26px 34px 26px / 26px 34px 26px 34px;
+    background: rgba(255, 255, 255, 0.92);
+    border-color: rgba(211, 173, 107, 0.4);
+    box-shadow: 0 16px 36px -6px rgba(169, 107, 93, 0.14), 0 0 25px rgba(255, 255, 255, 0.95) inset;
 }
 
 .why-icon-box {
-    width: 54px;
-    height: 54px;
+    width: 52px;
+    height: 52px;
     border-radius: 50%;
-    border: 1px solid rgba(169, 107, 93, 0.35);
+    border: 1px solid rgba(169, 107, 93, 0.3);
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 0.85rem;
-    background: rgba(255, 255, 255, 0.5);
+    margin: 0 auto 0.8rem;
+    background: rgba(255, 255, 255, 0.8);
     position: relative;
-    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    box-shadow: 0 4px 12px rgba(169, 107, 93, 0.05);
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 4px 12px rgba(169, 107, 93, 0.06);
 }
 
 .why-icon-box i {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
     color: #a96b5d;
     transition: all 0.35s ease;
 }
