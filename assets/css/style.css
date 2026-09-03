@@ -1311,7 +1311,7 @@ img {
     line-height: 1.4;
 }
 
-/* Grid */
+/* Grid with Modern Smooth Animations */
 .why-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -1322,25 +1322,51 @@ img {
 
 .why-item {
     text-align: center;
-    padding: 0 0.5rem;
+    padding: 1.2rem 0.8rem;
+    border-radius: 12px;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease, background-color 0.35s ease;
+    cursor: default;
+    position: relative;
+}
+
+.why-item:hover {
+    transform: translateY(-8px);
+    background-color: rgba(255, 255, 255, 0.85);
+    box-shadow: 0 12px 30px rgba(169, 107, 93, 0.08);
 }
 
 .why-icon-box {
-    width: 50px;
-    height: 50px;
+    width: 54px;
+    height: 54px;
     border-radius: 50%;
-    border: 1px solid rgba(169, 107, 93, 0.3);
+    border: 1px solid rgba(169, 107, 93, 0.35);
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 0.75rem;
-    background: transparent;
+    margin: 0 auto 0.85rem;
+    background: rgba(255, 255, 255, 0.5);
+    position: relative;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 4px 12px rgba(169, 107, 93, 0.05);
 }
 
 .why-icon-box i {
-    width: 22px;
-    height: 22px;
+    width: 24px;
+    height: 24px;
     color: #a96b5d;
+    transition: all 0.35s ease;
+}
+
+.why-item:hover .why-icon-box {
+    transform: scale(1.12) rotate(6deg);
+    border-color: #d3ad6b;
+    background: linear-gradient(135deg, #fff7ee 0%, #f6e8d8 100%);
+    box-shadow: 0 8px 24px rgba(211, 173, 107, 0.35);
+}
+
+.why-item:hover .why-icon-box i {
+    color: #8c4c3e;
+    transform: scale(1.08);
 }
 
 .why-num {
@@ -1348,29 +1374,53 @@ img {
     font-size: 1.05rem;
     color: #a96b5d;
     margin-bottom: 0.25rem;
+    letter-spacing: 1px;
+    transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.why-item:hover .why-num {
+    color: #d3ad6b;
+    transform: scale(1.05);
 }
 
 .why-item h3 {
     font-family: var(--font-serif);
-    font-size: 1.1rem;
-    font-weight: 400;
+    font-size: 1.15rem;
+    font-weight: 500;
     color: #3b2c28;
     margin-bottom: 0.4rem;
+    transition: color 0.3s ease;
+}
+
+.why-item:hover h3 {
+    color: #a96b5d;
 }
 
 .why-item-sep {
     width: 25px;
-    height: 1px;
-    background-color: #d3ad6b;
-    margin: 0 auto 0.5rem;
+    height: 1.5px;
+    background: linear-gradient(90deg, #d3ad6b, #e8c688, #d3ad6b);
+    margin: 0 auto 0.6rem;
     opacity: 0.7;
+    border-radius: 2px;
+    transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+}
+
+.why-item:hover .why-item-sep {
+    width: 55px;
+    opacity: 1;
 }
 
 .why-item p {
     font-family: var(--font-sans);
-    font-size: 0.75rem;
-    color: #777;
-    line-height: 1.5;
+    font-size: 0.78rem;
+    color: #666;
+    line-height: 1.55;
+    transition: color 0.3s ease;
+}
+
+.why-item:hover p {
+    color: #3b2c28;
 }
 
 /* Trust Section Wrapper for Full-Width */
