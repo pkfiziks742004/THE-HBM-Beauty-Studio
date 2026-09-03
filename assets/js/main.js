@@ -394,5 +394,56 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // --- Interactive Appointment Form Handler (Works on both Static and PHP Vercel) ---
+    const bookingForm = document.querySelector('.hbm-form');
+    if (bookingForm) {
+        bookingForm.addEventListener('submit', function(e) {
+            const honeypot = this.querySelector('input[name="website_hp"]');
+            if (honeypot && honeypot.value.trim() !== '') {
+                // Silently block bot
+                e.preventDefault();
+                return;
+            }
+
+            const nameInput = document.getElementById('name');
+            const phoneInput = document.getElementById('phone');
+            const serviceInput = document.getElementById('service');
+            const dateInput = document.getElementById('date');
+            const timeInput = document.getElementById('time');
+            const messageInput = document.getElementById('message');
+
+            const name = nameInput ? nameInput.value.trim() : '';
+            const phone = phoneInput ? phoneInput.value.trim() : '';
+            const service = serviceInput ? serviceInput.value : '';
+            const date = dateInput ? dateInput.value : '';
+            const time = timeInput ? timeInput.value : '';
+            const msg = messageInput ? messageInput.value.trim() : '';
+
+            // If running on static host (e.g. index.html without PHP processing server)
+            if (window.location.protocol === 'file:' || !window.location.pathname.endsWith('.php')) {
+                e.preventDefault();
+                
+                const card = document.querySelector('.hbm-contact-form-card');
+                if (card) {
+                    const waText = encodeURIComponent(
+                        `Hello THE HBM Beauty Studio! 🌸\n\nI would like to book an appointment:\n- Name: ${name}\n- Phone: ${phone}\n- Service: ${service}\n- Date: ${date}\n- Time: ${time}${msg ? `\n- Note: ${msg}` : ''}`
+                    );
+                    const waLink = `https://wa.me/910000000000?text=${waText}`;
+
+                    card.innerHTML = `
+                        <div class="hbm-alert hbm-alert-success" style="margin-bottom: 1.5rem; text-align: center; padding: 1.5rem; border-radius: 8px;">
+                            <h3 style="font-family: var(--font-primary, serif); font-size: 1.5rem; margin-bottom: 0.5rem; color: #a96b5d;">✨ Request Received!</h3>
+                            <p style="margin-bottom: 1rem; color: #444; line-height: 1.6;">Thank you, <strong>${name}</strong>. Your appointment request for <strong>${service}</strong> on <strong>${date} at ${time}</strong> has been registered.</p>
+                            <a href="${waLink}" target="_blank" class="btn btn-gold btn-liquid" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none; padding: 0.8rem 1.6rem; border-radius: 4px; font-weight: 600; font-size: 0.85rem; letter-spacing: 1px;">
+                                CONFIRM ON WHATSAPP &rarr;
+                            </a>
+                        </div>
+                    `;
+                    card.scrollIntoView({ behavior: 'smooth' });
+                }
+            }
+        });
+    }
 });
 
