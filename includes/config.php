@@ -31,28 +31,39 @@ define('SITE_URL', getenv('SITE_URL') ?: (isset($_SERVER['HTTP_HOST']) ? (isset(
 // Initialize Database Connection (PDO)
 // -------------------------------------------------------------
 $pdo = null;
-try {
-    $dsn = "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";charset=utf8mb4";
-    $options = [
-        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        PDO::ATTR_EMULATE_PREPARES   => false,
-        PDO::ATTR_TIMEOUT            => 5,
-    ];
-    $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
-} catch (PDOException $e) {
-    // Fail gracefully if database is not set up (Fallback to Demo Mode)
-    $pdo = null;
+// Only attempt connection if cloud DB_HOST is set or running in local environment
+$should_connect = (getenv('DB_HOST') && getenv('DB_HOST') !== 'localhost') || 
+                  (!getenv('VERCEL') && !empty($_SERVER['HTTP_HOST']) && strpos($_SERVER['HTTP_HOST'], 'localhost') !== false);
+
+if ($should_connect) {
+    try {
+        $dsn = "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";charset=utf8mb4";
+        $options = [
+            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES   => false,
+            PDO::ATTR_TIMEOUT            => 2,
+        ];
+        $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
+    } catch (\Throwable $e) {
+        // Fail gracefully if database is not set up (Fallback to Demo Mode)
+        $pdo = null;
+    }
 }
 
 // -------------------------------------------------------------
-// Secure Session Initialization
+// Secure Session Initialization (Vercel / Lambda Serverless Writable Path)
 // -------------------------------------------------------------
 if (session_status() === PHP_SESSION_NONE) {
+    $temp_dir = sys_get_temp_dir() ?: '/tmp';
+    if (is_dir($temp_dir) && is_writable($temp_dir)) {
+        @session_save_path($temp_dir);
+    }
+    
     $is_https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || 
                 (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
     
-    session_set_cookie_params([
+    @session_set_cookie_params([
         'lifetime' => 0,
         'path'     => '/',
         'domain'   => '',
@@ -60,7 +71,7 @@ if (session_status() === PHP_SESSION_NONE) {
         'httponly' => true,
         'samesite' => 'Lax'
     ]);
-    session_start();
+    @session_start();
 }
 
 // -------------------------------------------------------------
