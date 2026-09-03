@@ -172,8 +172,8 @@
             
             <div class="hbm-developer-credit">
                 <span class="hbm-dev-text">Designed &amp; Developed By — <a href="https://pluscode.in/" target="_blank" rel="noopener noreferrer" class="hbm-dev-link">PlusCode</a></span>
-                <a href="https://pluscode.in/" target="_blank" rel="noopener noreferrer" class="hbm-dev-badge" title="PlusCode — Web Design & Development">
-                    <img src="assets/images/pluscode-logo.svg" alt="PlusCode" width="130" height="42" loading="lazy" decoding="async">
+                <a href="https://pluscode.in/" target="_blank" rel="noopener noreferrer" class="hbm-dev-badge" title="PlusCode — We Design | We Develop | We Deliver">
+                    <img src="assets/images/pluscode-logo.webp" alt="PlusCode — We Design | We Develop | We Deliver" width="140" height="70" loading="lazy" decoding="async">
                 </a>
             </div>
         </div>
