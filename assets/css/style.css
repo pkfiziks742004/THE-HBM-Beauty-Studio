@@ -3768,3 +3768,59 @@ textarea.hbm-form-control {
     display: block;
     border-radius: 2px;
 }
+
+/* ==========================================================================
+   DEVELOPER CREDIT (PLUSCODE)
+   ========================================================================== */
+.hbm-developer-credit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    margin-top: 1.5rem;
+    padding-top: 0.5rem;
+}
+
+.hbm-dev-text {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.75);
+    letter-spacing: 0.5px;
+    font-weight: 400;
+}
+
+.hbm-dev-link {
+    color: #00b493;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.hbm-dev-link:hover {
+    color: #f36c21;
+    text-decoration: underline;
+}
+
+.hbm-dev-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+    padding: 7px 18px;
+    border-radius: 8px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+}
+
+.hbm-dev-badge:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 8px 24px rgba(243, 108, 33, 0.35);
+}
+
+.hbm-dev-badge img {
+    height: 32px;
+    width: auto;
+    display: block;
+}
+

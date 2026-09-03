@@ -169,6 +169,13 @@
             </div>
             
             <p class="hbm-fb-copyright-text">&copy; 2026 THE HBM. All Rights Reserved.</p>
+            
+            <div class="hbm-developer-credit">
+                <span class="hbm-dev-text">Designed &amp; Developed By — <a href="https://pluscode.in/" target="_blank" rel="noopener noreferrer" class="hbm-dev-link">PlusCode</a></span>
+                <a href="https://pluscode.in/" target="_blank" rel="noopener noreferrer" class="hbm-dev-badge" title="PlusCode — Web Design & Development">
+                    <img src="assets/images/pluscode-logo.svg" alt="PlusCode" width="130" height="42" loading="lazy" decoding="async">
+                </a>
+            </div>
         </div>
     </footer>
 
