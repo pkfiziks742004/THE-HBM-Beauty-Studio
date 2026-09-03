@@ -3808,22 +3808,23 @@ textarea.hbm-form-control {
     background: #ffffff;
     padding: 6px 14px;
     border-radius: 8px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
     border: 1px solid rgba(0, 0, 0, 0.06);
-    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .hbm-dev-badge:hover {
-    transform: translateY(-3px) scale(1.03);
-    box-shadow: 0 8px 24px rgba(243, 108, 33, 0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(243, 108, 33, 0.25);
 }
 
 .hbm-dev-badge img {
-    width: 140px;
-    height: auto;
-    max-height: 52px;
-    object-fit: contain;
+    height: 36px;
+    width: auto;
+    max-width: 140px;
     display: block;
+    object-fit: contain;
 }
+
 
 
